@@ -1,0 +1,76 @@
+<html>
+<head>
+  <script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+</head>
+<body>
+  <div style="width:80%;">
+    <canvas id="myChart"></canvas>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.bundle.js"></script>
+  <script>
+  var ctx = document.getElementById("myChart");
+  var myChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+          labels: [<%= data.data %>],
+          datasets: [{
+              label: 'Random Numbers',
+              data: [<%= data.data %>],
+              borderWidth: 1
+          }]
+      },
+      options: {
+          animation: {
+            duration: 0
+          },
+          scales: {
+              yAxes: [{
+                  ticks: {
+                  }
+              }]
+          }
+      }
+  });
+  </script>
+  <form class="" action="/newData" method="post">
+    <input type="number" name="newData">
+    <button type="submit" name="addtButton">Add</button>
+  </form>
+  <script type="text/javascript">
+    var r;
+    setInterval(function(){
+      $.get("/data",function(data,status){
+        //console.log(data);
+        r = data;
+        data.data = r.data.data;
+        ctx = document.getElementById("myChart");
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: (data.data)?data.data:[<%= data.data %>],
+                datasets: [{
+                    label: 'Temperature Reading',
+                    data: (data.data)?data.data:[<%= data.data %>],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                animation: {
+                  duration: 0
+                },
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                        }
+                    }]
+                }
+            }
+        });
+      });
+    },3000);
+  </script>
+</body>
+</html>
