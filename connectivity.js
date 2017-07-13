@@ -1,37 +1,38 @@
-const mongodb = require('mongodb');
-var _db;
+const pg = require('pg');
+
+const configurationString = 'postgres:\/\/postgres:vishnu@localhost/Data';
+
 
 module.exports = {
-  connectDB : function(next){
-    mongodb.connect("mongodb://localhost:27017/Data",function(err,db){
-      if(err){
-        next(err);
-      } else {
-        console.log("Connection Successful");
-        _db = db;
-        next();
-      }
-    });
-  },
-
   saveToDB : function(data){
-    _db.collection("Data").insertOne(data,function(err){
-      if(err){
-        console.log("Error : "+err);
-      } else {
-        console.log("Inserted");
+    pg.connect(configurationString, function (err, client, done) {
+      if (err) {
+        return console.error('error fetching client from pool', err);
       }
+      done();
+      client.query('insert into data(data) values($1)',[data], function (err, result) {
+
+        if (err) {
+          return console.error('error happened during query', err);
+        }
+      });
     });
   },
-
   fetchfromDB : function(next){
-    _db.collection("Data").find().sort({ $natural: -1}).limit(10).toArray(function(err,data){
-      if(err){
-        console.log("Error Fetch");
-        next(err);
-      } else {
-        next(data);
+    pg.connect(configurationString, function (err, client, done) {
+      if (err) {
+        return console.error('error fetching client from pool', err);
+        done(err);
       }
-    });
+      client.query('SELECT data from data', function (err, result) {
+        //done(result.rows);
+        if (err) {
+          return console.error('error happened during query', err);
+          done(err);
+        }
+        next(result.rows.reverse().slice(0,11));
+        done(result.rows);
+      });
+  });
   }
-}
+};

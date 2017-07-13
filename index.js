@@ -12,9 +12,14 @@ const urlencodedParser = bodyParser.urlencoded({extended:false});
 
 app.set('view engine', 'ejs');
 
+app.get('/',function(req,res){
+  res.send("home");
+});
+
 app.get('/home',function(req,res){
   var data = {};
   var q = [];
+  //console.log("from hello");
   connection.fetchfromDB(function(data){
     //res.send("<html><body><canvas id=""></canvas></body></html>")
     data.forEach(function(item,index){
@@ -28,6 +33,8 @@ app.get('/home',function(req,res){
 });
 
 app.get("/data",function(req,res){
+  var d = new Date();
+  //var n = d.getTime();
   var data = {};
   var q = [];
   connection.fetchfromDB(function(data){
@@ -37,14 +44,14 @@ app.get("/data",function(req,res){
       q.push(item.data);
     });
     data = {data: q};
-    console.log({data:data});
+    console.log(d,{data:data});
     res.send({data : data});
   });
 });
 
 app.post('/newData',urlencodedParser,function(req,res){
   console.log(req.body.newData.toString("utf8"));
-  connection.saveToDB({data : req.body.newData.toString("utf8")});
+  connection.saveToDB(req.body.newData.toString("utf8"));
   res.redirect("/home");
 });
 
@@ -61,12 +68,8 @@ port.on('error', function(err) {
 
 port.on('open',function(){
   console.log("Device is connected");
-  connection.connectDB(function(err){
-    if(err)
-      console.log("Database Connection Successful");
-      port.on('data',function(receivedData){
-        console.log(receivedData.toString("utf8"));
-        connection.saveToDB({data : receivedData.toString("utf8").replace(/\r?\n|\r/g,"")});
-      });
+  port.on('data',function(receivedData){
+    console.log(receivedData);
+    connection.saveToDB(receivedData.toString("utf8").replace(/\r?\n|\r/g,""));
   });
 });
